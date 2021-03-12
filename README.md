@@ -1,3 +1,5 @@
+Facial Paralysis Detection on Images Using Key Point Analysis
+============================================================================================
 Software to autmatically compute facial measures from previously extracted facial landmarks.
 Required packages:
 + OpenCV 
@@ -18,12 +20,13 @@ Output data:
 If you use this software please cite the following paper:
 + Parra-Dominguez, G.S.; Sanchez-Yanez, R.E.; Garcia-Capulin, C.H. Facial Paralysis Detection on Images Using Key Point Analysis. Appl. Sci. 2021, 11, 2435. https://doi.org/10.3390/app11052435
 
+================================================================================================================================
+
 If you wish to extrac the facial landmarks using the mee_shape_predictor_68_face_landmarks, you will need to run "command_line.py",
 which is a python script developed by Diego L.Guarin and modified by Gemma S. Parra-Dominguez.
 Required packages:
 + dlib
 + OpenCV
-
 
 Executing the code: Download and install python (I used 3.6), I recomend to install anaconda (https://www.anaconda.com/download/) and use Spider to edit and excute the code. Once conda is installed you can add anaconda to your enviromental variables (in windows) and excute the following commands in the command line (cmd)
 
@@ -37,6 +40,8 @@ Default:
 
 If you use this software please cite the following paper:
 Guarin, Diego L., Joseph Dusseldorp, Tessa A. Hadlock, and Nate Jowett. "A machine learning approach for automated facial measurements in facial palsy." JAMA facial plastic surgery (2018).
+
+====================================================================================================================
 
 If you wish to create ARFF files to test the methodology, you can run the matlab script "gp_data_prepare_to_arff.m"
 
