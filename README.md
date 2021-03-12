@@ -6,19 +6,21 @@ Required packages:
 This project was created with opencv 4.2.0 and the additional modules that can be obtained from https://github.com/opencv/opencv_contrib
 
 Default:
-+input data must be stored at "test_data/"
-+results will be stored at "test_results/"
++ input data must be stored at "test_data/"
++ results will be stored at "test_results/"
++   MAIN FILE is gpmain.cpp
 
 Input data:
-+images should be in ".jpg" format and named as "test_image_XXX.jpg", where XXX are consecutive number 000, 001,...,XXX
-+facial landmarks must be stored on a ".csv" file and named as "test_image_XXX.csv", where XXX are consecutive numbers 000, 001,...,XXX
++ images should be in ".jpg" format and named as "test_image_XXX.jpg", where XXX are consecutive number 000, 001,...,XXX
++ facial landmarks must be stored on a ".csv" file and named as "test_image_XXX.csv", where XXX are consecutive numbers 000, 001,...,XXX
 
 Output data:
-+images showing the 51 facial landmarks will be named as "test_image_XXX_keypts_out.jpg"
-+symmetry measures will be named as "smfeat_XXX_out.csv"
++ images showing the 51 facial landmarks will be named as "test_image_XXX_keypts_out.jpg"
++ symmetry measures will be named as "smfeat_XXX_out.csv"
 
 If you use this software please cite the following paper:
 + Parra-Dominguez, G.S.; Sanchez-Yanez, R.E.; Garcia-Capulin, C.H. Facial Paralysis Detection on Images Using Key Point Analysis. Appl. Sci. 2021, 11, 2435. https://doi.org/10.3390/app11052435
++ Contact info: gemmasparra at gmail dot com
 
 ===============================
 
