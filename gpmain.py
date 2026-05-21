@@ -1,0 +1,454 @@
+import cv2
+import numpy as np
+import math
+import os
+import csv
+
+# Constants
+FIRST_LANDMARK = 17
+TOTAL_LANDMARK = 51
+TOTAL_SMR = 29
+
+test_results_path = "test_results/"
+test_image_path = "test_data/"
+image_ext = ".jpg"
+csv_name = ".csv"
+
+def readCSV(file_name):
+    try:
+        with open(file_name, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            data = []
+            for row in reader:
+                data.append([float(val) for val in row])
+            return np.array(data, dtype=np.float32)
+    except FileNotFoundError:
+        return np.array([])
+
+def writeCSV(filename, m):
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if m.ndim == 1:
+            writer.writerow(m)
+        else:
+            for row in m:
+                writer.writerow(row)
+
+def gpFaceReg(image_face, data_keypts):
+    angle = 0
+    delta_x = data_keypts[0, 0] - data_keypts[16, 0]
+    delta_y = data_keypts[0, 1] - data_keypts[16, 1]
+
+    if not math.isnan(math.atan2(delta_y, delta_x)):
+        angle = math.atan2(delta_y, delta_x) * 180 / math.pi
+
+    if angle > 0:
+        angle -= 180
+    else:
+        angle += 180
+
+    center = (int(data_keypts[0, 0]), int(data_keypts[0, 1]))
+    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rot_face = cv2.warpAffine(image_face, rot_mat, (image_face.shape[1], image_face.shape[0]))
+
+    mat_landmarks = data_keypts.copy()
+    for ik in range(data_keypts.shape[0]):
+        mat_landmarks[ik, 0] = data_keypts[ik, 0] * rot_mat[0, 0] + data_keypts[ik, 1] * rot_mat[0, 1] + rot_mat[0, 2]
+        mat_landmarks[ik, 1] = data_keypts[ik, 0] * rot_mat[1, 0] + data_keypts[ik, 1] * rot_mat[1, 1] + rot_mat[1, 2]
+
+    return rot_face, mat_landmarks
+
+def gpEuclideanDist(x_land, y_land, x_key, y_key):
+    return math.sqrt((x_land - x_key)**2 + (y_land - y_key)**2)
+
+def gpPtsExt(mat_landmarks):
+    coord_vector = np.zeros((TOTAL_LANDMARK, 2), dtype=np.float32)
+    cont = 0
+
+    # Eyebrow
+    for ik in range(17, 27):
+        coord_vector[cont, 0] = mat_landmarks[ik, 0]
+        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        cont += 1
+
+    # Eye
+    for ik in range(36, 48):
+        coord_vector[cont, 0] = mat_landmarks[ik, 0]
+        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        cont += 1
+
+    # Nose
+    for ik in range(30, 36):
+        coord_vector[cont, 0] = mat_landmarks[ik, 0]
+        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        cont += 1
+
+    # Mouth
+    for ik in range(48, 68):
+        coord_vector[cont, 0] = mat_landmarks[ik, 0]
+        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        cont += 1
+
+    # Jaw
+    coord_vector[cont, 0] = mat_landmarks[0, 0]
+    coord_vector[cont, 1] = mat_landmarks[0, 1]
+    cont += 1
+
+    coord_vector[cont, 0] = mat_landmarks[16, 0]
+    coord_vector[cont, 1] = mat_landmarks[16, 1]
+    cont += 1
+
+    coord_vector[cont, 0] = mat_landmarks[8, 0]
+    coord_vector[cont, 1] = mat_landmarks[8, 1]
+
+    return coord_vector
+
+def gpGetFMM(norm_vector, face_smr_data):
+    a_dist = gpEuclideanDist(norm_vector[49, 0], norm_vector[49, 1], norm_vector[48, 0], norm_vector[48, 1])
+    b_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[28, 0], norm_vector[28, 1])
+    c_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[34, 0], norm_vector[34, 1])
+    d_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[2, 0], norm_vector[2, 1])
+    e_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[3, 0], norm_vector[3, 1])
+    f_dist = gpEuclideanDist(norm_vector[6, 0], norm_vector[6, 1], norm_vector[37, 0], norm_vector[37, 1])
+    g_dist = gpEuclideanDist(norm_vector[7, 0], norm_vector[7, 1], norm_vector[37, 0], norm_vector[37, 1])
+    h_dist = gpEuclideanDist(norm_vector[34, 0], norm_vector[34, 1], norm_vector[28, 0], norm_vector[28, 1])
+    i_dist = gpEuclideanDist(norm_vector[31, 0], norm_vector[31, 1], norm_vector[25, 0], norm_vector[25, 1])
+
+    sl_dist = gpEuclideanDist(norm_vector[29, 0], norm_vector[29, 1], norm_vector[39, 0], norm_vector[39, 1])
+    su_dist = gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[38, 0], norm_vector[38, 1])
+    tl_dist = gpEuclideanDist(norm_vector[33, 0], norm_vector[33, 1], norm_vector[35, 0], norm_vector[35, 1])
+    tu_dist = gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[36, 0], norm_vector[36, 1])
+
+    ml_dist = gpEuclideanDist(norm_vector[28, 0], norm_vector[28, 1], norm_vector[29, 0], norm_vector[29, 1])
+    ml_dist += gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[29, 0], norm_vector[29, 1])
+    ml_dist += gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[31, 0], norm_vector[31, 1])
+    ml_dist += gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[31, 0], norm_vector[31, 1])
+    ml_dist += gpEuclideanDist(norm_vector[38, 0], norm_vector[38, 1], norm_vector[37, 0], norm_vector[37, 1])
+    ml_dist += gpEuclideanDist(norm_vector[38, 0], norm_vector[38, 1], norm_vector[39, 0], norm_vector[39, 1])
+    ml_dist += gpEuclideanDist(norm_vector[28, 0], norm_vector[28, 1], norm_vector[39, 0], norm_vector[39, 1])
+
+    mr_dist = gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[31, 0], norm_vector[31, 1])
+    mr_dist += gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[33, 0], norm_vector[33, 1])
+    mr_dist += gpEuclideanDist(norm_vector[34, 0], norm_vector[34, 1], norm_vector[33, 0], norm_vector[33, 1])
+    mr_dist += gpEuclideanDist(norm_vector[34, 0], norm_vector[34, 1], norm_vector[35, 0], norm_vector[35, 1])
+    mr_dist += gpEuclideanDist(norm_vector[36, 0], norm_vector[36, 1], norm_vector[35, 0], norm_vector[35, 1])
+    mr_dist += gpEuclideanDist(norm_vector[36, 0], norm_vector[36, 1], norm_vector[37, 0], norm_vector[37, 1])
+    mr_dist += gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[31, 0], norm_vector[31, 1])
+
+    if b_dist > c_dist: face_smr_data[18, 0] = b_dist / a_dist
+    else: face_smr_data[18, 0] = c_dist / a_dist
+
+    if sl_dist > tl_dist: face_smr_data[19, 0] = sl_dist / h_dist
+    else: face_smr_data[19, 0] = tl_dist / h_dist
+
+    if su_dist > tu_dist: face_smr_data[20, 0] = su_dist / h_dist
+    else: face_smr_data[20, 0] = tu_dist / h_dist
+
+    if ml_dist > mr_dist: face_smr_data[21, 0] = ml_dist / h_dist
+    else: face_smr_data[21, 0] = mr_dist / h_dist
+
+    if d_dist > g_dist: face_smr_data[25, 0] = d_dist / a_dist
+    else: face_smr_data[25, 0] = g_dist / a_dist
+
+    if e_dist > f_dist: face_smr_data[26, 0] = e_dist / a_dist
+    else: face_smr_data[26, 0] = f_dist / a_dist
+
+    face_smr_data[28, 0] = i_dist / a_dist
+
+def gpGetSMR(norm_vector, face_smr_data):
+    mineval = 0.0001
+    b_dist = gpEuclideanDist(norm_vector[49, 0], norm_vector[49, 1], norm_vector[48, 0], norm_vector[48, 1])
+    e_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[10, 0], norm_vector[10, 1])
+    f_dist = gpEuclideanDist(norm_vector[19, 0], norm_vector[19, 1], norm_vector[37, 0], norm_vector[37, 1])
+    gl_dist = gpEuclideanDist(norm_vector[13, 0], norm_vector[13, 1], norm_vector[10, 0], norm_vector[10, 1])
+    gr_dist = gpEuclideanDist(norm_vector[19, 0], norm_vector[19, 1], norm_vector[16, 0], norm_vector[16, 1])
+    j_dist = gpEuclideanDist(norm_vector[10, 0], norm_vector[10, 1], norm_vector[48, 0], norm_vector[48, 1])
+    k_dist = gpEuclideanDist(norm_vector[49, 0], norm_vector[49, 1], norm_vector[19, 0], norm_vector[19, 1])
+    l_dist = gpEuclideanDist(norm_vector[50, 0], norm_vector[50, 1], norm_vector[37, 0], norm_vector[37, 1])
+    m_dist = gpEuclideanDist(norm_vector[10, 0], norm_vector[10, 1], norm_vector[23, 0], norm_vector[23, 1])
+    n_dist = gpEuclideanDist(norm_vector[19, 0], norm_vector[19, 1], norm_vector[27, 0], norm_vector[27, 1])
+    o_dist = gpEuclideanDist(norm_vector[23, 0], norm_vector[23, 1], norm_vector[37, 0], norm_vector[37, 1])
+    p_dist = gpEuclideanDist(norm_vector[27, 0], norm_vector[27, 1], norm_vector[37, 0], norm_vector[37, 1])
+
+    ql_dist = gpEuclideanDist(norm_vector[11, 0], norm_vector[11, 1], norm_vector[15, 0], norm_vector[15, 1])
+    qr_dist = gpEuclideanDist(norm_vector[12, 0], norm_vector[12, 1], norm_vector[14, 0], norm_vector[14, 1])
+    q_avg = (abs(norm_vector[11, 1] - norm_vector[15, 1]) + abs(norm_vector[12, 1] - norm_vector[14, 1])) / 2.0
+    if q_avg <= mineval: q_avg = 0
+
+    rl_dist = gpEuclideanDist(norm_vector[17, 0], norm_vector[17, 1], norm_vector[21, 0], norm_vector[21, 1])
+    rr_dist = gpEuclideanDist(norm_vector[18, 0], norm_vector[18, 1], norm_vector[20, 0], norm_vector[20, 1])
+    r_avg = (abs(norm_vector[17, 1] - norm_vector[21, 1]) + abs(norm_vector[18, 1] - norm_vector[20, 1])) / 2.0
+    if r_avg <= mineval: r_avg = 0
+
+    sl_dist = gpEuclideanDist(norm_vector[29, 0], norm_vector[29, 1], norm_vector[39, 0], norm_vector[39, 1])
+    su_dist = gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[38, 0], norm_vector[38, 1])
+    tl_dist = gpEuclideanDist(norm_vector[33, 0], norm_vector[33, 1], norm_vector[35, 0], norm_vector[35, 1])
+    tu_dist = gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[36, 0], norm_vector[36, 1])
+
+    i_dist = norm_vector[0, 1] + norm_vector[1, 1] + norm_vector[2, 1] + norm_vector[3, 1] + norm_vector[4, 1]
+    i_dist /= 5
+    a_dist = norm_vector[5, 1] + norm_vector[6, 1] + norm_vector[7, 1] + norm_vector[8, 1] + norm_vector[9, 1]
+    a_dist /= 5
+
+    c_dist = abs(norm_vector[9, 1] - norm_vector[0, 1]) / max(abs(norm_vector[9, 0] - norm_vector[0, 0]), 1e-6)
+    d_dist = abs(norm_vector[7, 1] - norm_vector[2, 1]) / max(abs(norm_vector[7, 0] - norm_vector[2, 0]), 1e-6)
+    h_dist = abs(norm_vector[5, 1] - norm_vector[4, 1]) / max(abs(norm_vector[5, 0] - norm_vector[4, 0]), 1e-6)
+
+    delta_x = norm_vector[0, 0] - norm_vector[9, 0]
+    delta_y = norm_vector[0, 1] - norm_vector[9, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[0, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    delta_x = norm_vector[2, 0] - norm_vector[7, 0]
+    delta_y = norm_vector[2, 1] - norm_vector[7, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[1, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    delta_x = norm_vector[4, 0] - norm_vector[5, 0]
+    delta_y = norm_vector[4, 1] - norm_vector[5, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[2, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    if a_dist < i_dist: face_smr_data[3, 0] = a_dist / i_dist
+    else: face_smr_data[3, 0] = i_dist / a_dist
+
+    face_smr_data[4, 0] = c_dist
+    face_smr_data[5, 0] = d_dist
+    face_smr_data[6, 0] = h_dist
+
+    delta_x = norm_vector[19, 0] - norm_vector[10, 0]
+    delta_y = norm_vector[19, 1] - norm_vector[10, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[7, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    if gl_dist < gr_dist: face_smr_data[8, 0] = gl_dist / gr_dist
+    else: face_smr_data[8, 0] = gr_dist / gl_dist
+
+    if j_dist < k_dist: face_smr_data[9, 0] = j_dist / k_dist
+    else: face_smr_data[9, 0] = k_dist / j_dist
+
+    if m_dist < n_dist: face_smr_data[10, 0] = m_dist / n_dist
+    else: face_smr_data[10, 0] = n_dist / m_dist
+
+    if q_avg < r_avg and r_avg != 0: face_smr_data[11, 0] = q_avg / r_avg
+    elif q_avg != 0: face_smr_data[11, 0] = r_avg / q_avg
+    else: face_smr_data[11, 0] = 0
+
+    if ql_dist < rr_dist: face_smr_data[12, 0] = ql_dist / rr_dist
+    else: face_smr_data[12, 0] = rr_dist / ql_dist
+
+    if qr_dist < rl_dist: face_smr_data[13, 0] = qr_dist / rl_dist
+    else: face_smr_data[13, 0] = rl_dist / qr_dist
+
+    delta_x = norm_vector[34, 0] - norm_vector[28, 0]
+    delta_y = norm_vector[34, 1] - norm_vector[28, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[14, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    if e_dist < f_dist: face_smr_data[15, 0] = e_dist / f_dist
+    else: face_smr_data[15, 0] = f_dist / e_dist
+
+    if sl_dist < tl_dist: face_smr_data[16, 0] = sl_dist / tl_dist
+    else: face_smr_data[16, 0] = tl_dist / sl_dist
+
+    if su_dist < tu_dist: face_smr_data[17, 0] = su_dist / tu_dist
+    else: face_smr_data[17, 0] = tu_dist / su_dist
+
+    delta_x = norm_vector[27, 0] - norm_vector[23, 0]
+    delta_y = norm_vector[27, 1] - norm_vector[23, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[22, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    delta_x = norm_vector[37, 0] - norm_vector[22, 0]
+    delta_y = norm_vector[37, 1] - norm_vector[22, 1]
+    if not math.isnan(math.atan2(delta_y, delta_x)): face_smr_data[23, 0] = abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+
+    if o_dist < p_dist: face_smr_data[24, 0] = o_dist / p_dist
+    else: face_smr_data[24, 0] = p_dist / o_dist
+
+    if b_dist != 0: face_smr_data[27, 0] = l_dist / b_dist
+
+def gpComputeSRM(num_test_images, test_image_root, init_img):
+    no_img_found = 0
+    face_found = 0
+
+    for ik in range(init_img, num_test_images):
+        if ik < 1000: cbuffs = f"{ik:03d}"
+        else: cbuffs = f"{ik:04d}"
+
+        img_name = test_image_root + cbuffs + image_ext
+        file_name = test_image_root + cbuffs + csv_name
+
+        print(file_name)
+        data_keypts = readCSV(file_name)
+        img_color = cv2.imread(img_name)
+
+        if data_keypts.size == 0 or img_color is None:
+            no_img_found += 1
+            print("no data found...")
+            smr_vector = np.array([[-1.0]])
+            file_name_out = test_results_path + "smfeat_" + "test_image_" + cbuffs + csv_name
+            writeCSV(file_name_out, smr_vector)
+        else:
+            img_lbf, mat_landmarks = gpFaceReg(img_color, data_keypts)
+            for jk in range(FIRST_LANDMARK, data_keypts.shape[0]):
+                cv2.circle(img_lbf, (int(mat_landmarks[jk, 0]), int(mat_landmarks[jk, 1])), 6, (0, 0, 255), -1)
+
+            file_name_out = test_results_path + "test_image_" + cbuffs + "_keypts_out" + image_ext
+            cv2.imwrite(file_name_out, img_lbf)
+            face_found += 1
+
+            coord_vector = gpPtsExt(mat_landmarks)
+            smr_vector = np.zeros((TOTAL_SMR, 1), dtype=np.float32)
+            gpGetSMR(coord_vector, smr_vector)
+            gpGetFMM(coord_vector, smr_vector)
+
+            file_name_out = test_results_path + "smfeat_" + "test_image_" + cbuffs + csv_name
+            writeCSV(file_name_out, smr_vector)
+
+    print(f"Number of files not found: {no_img_found}")
+    print(f"Number of files found: {face_found}")
+    print(f"Total of supposed data: {num_test_images - init_img}")
+
+
+def gpdata_extraction(path, smr_name, all_labels):
+    all_data_set = []
+    all_targets = []
+    num_subj = len(all_labels)
+    cont = 0
+
+    for ik in range(num_subj):
+        if ik < 10:
+            name_file = f"{path}{smr_name}00{ik}.csv"
+        elif ik < 100:
+            name_file = f"{path}{smr_name}0{ik}.csv"
+        else:
+            name_file = f"{path}{smr_name}{ik}.csv"
+
+        try:
+            data_smr = readCSV(name_file)
+            if data_smr.size > 0 and data_smr[0, 0] != -1:
+                # Transpose the SMR column vector to a row vector
+                if data_smr.ndim == 2 and data_smr.shape[1] == 1:
+                    row_data = data_smr.T[0]
+                elif data_smr.ndim == 2:
+                    row_data = data_smr[0]
+                else:
+                    row_data = data_smr
+
+                # Replace NaNs and Infs with 0 as in MATLAB
+                row_data = np.nan_to_num(row_data, nan=0.0, posinf=0.0, neginf=0.0)
+
+                all_data_set.append(row_data)
+                all_targets.append(all_labels[cont][0])
+        except Exception as e:
+            pass
+        cont += 1
+
+    if len(all_data_set) == 0:
+        return np.array([]), 0, 0
+
+    all_data_set = np.array(all_data_set)
+    all_targets = np.array(all_targets).reshape(-1, 1)
+
+    data_set = np.hstack((all_data_set, all_targets))
+    return data_set, data_set.shape[0], all_data_set.shape[1]
+
+def gpValuesExtrac(data_set, num_features):
+    mu_vals = np.mean(data_set, axis=0)
+    std_vals = np.std(data_set, axis=0, ddof=1) # MATLAB uses ddof=1 by default
+    feat_lims = np.zeros((num_features, 2))
+
+    for ik in range(num_features):
+        feat_lims[ik, 0] = -3 * std_vals[ik] + mu_vals[ik]
+        feat_lims[ik, 1] = 3 * std_vals[ik] + mu_vals[ik]
+
+    return feat_lims
+
+def gpDataLim(data_set, feat_lims):
+    data_out = data_set.copy()
+    m, n = data_out.shape
+    for ik in range(m):
+        for jk in range(n):
+            if data_out[ik, jk] < feat_lims[jk, 0]:
+                data_out[ik, jk] = feat_lims[jk, 0]
+            if data_out[ik, jk] > feat_lims[jk, 1]:
+                data_out[ik, jk] = feat_lims[jk, 1]
+    return data_out
+
+def gpNormalize(data_input, min_val, max_val):
+    data_output = np.zeros_like(data_input)
+    n = data_input.shape[1]
+
+    for ik in range(n):
+        data = data_input[:, ik]
+        valmin = np.min(data)
+        valmax = np.max(data)
+        if valmax - valmin != 0:
+            data_p = ((max_val - min_val) * (data - valmin) / (valmax - valmin)) + min_val
+        else:
+            data_p = data # Avoid division by zero if all values are same
+        data_output[:, ik] = data_p
+
+    return data_output
+
+def gp_data_prepare_to_arff(path, vec_labels, cvs_name_dataset, arff_name_dataset):
+    smr_name = 'smfeat_test_image_'
+    data_set, num_instances, num_features = gpdata_extraction(path, smr_name, vec_labels)
+
+    if num_instances == 0:
+        print("No valid instances found for ARFF creation.")
+        return
+
+    features_data = data_set[:, :num_features]
+    labels_data = data_set[:, num_features].reshape(-1, 1)
+
+    feat_lims = gpValuesExtrac(features_data, num_features)
+    data_p = gpDataLim(features_data, feat_lims)
+
+    fmatrix = gpNormalize(data_p, 0, 2)
+    fmatrix = gpNormalize(fmatrix, -1, 1)
+
+    data_set_norm = np.hstack((fmatrix, labels_data))
+
+    # Random permutation
+    np.random.seed(None) # Make sure it's random
+    indices = np.random.permutation(num_instances)
+    data_set_shuffled = data_set_norm[indices]
+
+    # Save CSV
+    writeCSV(path + cvs_name_dataset, data_set_shuffled)
+
+    # Create ARFF
+    with open(path + arff_name_dataset, 'w') as f:
+        f.write('%\n')
+        f.write('@relation face-alignment\n\n')
+
+        for ik in range(num_features):
+            f.write(f'@attribute  f{ik} REAL\n')
+
+        f.write('@attribute  class {0,1}\n\n')
+        f.write('@data\n')
+
+        m, n = data_set_shuffled.shape
+        f.write('%\n')
+        f.write(f'% {m} instances\n')
+        f.write('%\n')
+
+        for ik in range(m):
+            for jk in range(n - 1):
+                f.write(f'{data_set_shuffled[ik, jk]:.6f},')
+            f.write(f'{int(data_set_shuffled[ik, n-1])}\n')
+
+        f.write('%\n')
+        f.write('%')
+
+if __name__ == '__main__':
+    # Equivalent to C++ main
+    num_subjects = 5
+    test_image_root = test_image_path + "test_image_"
+    print(f"Processing images from {test_image_root}")
+    gpComputeSRM(num_subjects, test_image_root, 0)
+
+    # Equivalent to RUN.m
+    path = 'test_results/'
+    vec_labels = [[0], [1], [0], [0], [1]] # Example labels for the 5 subjects
+    cvs_name_dataset = 'face_aligment_dataset.csv'
+    arff_name_dataset = 'data_face-alignment.arff'
+    print(f"Preparing ARFF dataset...")
+    gp_data_prepare_to_arff(path, vec_labels, cvs_name_dataset, arff_name_dataset)
+    print("Done.")
