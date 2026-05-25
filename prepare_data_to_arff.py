@@ -2,6 +2,21 @@ import numpy as np
 from utils import readCSV, writeCSV
 
 def gpdata_extraction(path, smr_name, all_labels):
+    """
+    Reads SMR features from multiple CSV files and combines them into a single dataset with labels.
+
+    Args:
+        path (str): The directory path containing the input CSV files.
+        smr_name (str): The prefix of the CSV filenames (e.g., 'smfeat_test_image_').
+        all_labels (list or np.ndarray): An array of target labels corresponding to each subject.
+
+    Returns:
+        tuple:
+            - data_set (np.ndarray): A 2D array where each row represents a subject,
+                                     containing their extracted SMR features followed by their label.
+            - num_instances (int): The number of subjects (rows) successfully read.
+            - num_features (int): The number of SMR features (columns) extracted per subject.
+    """
     all_data_set = []
     all_targets = []
     num_subj = len(all_labels)
@@ -45,6 +60,18 @@ def gpdata_extraction(path, smr_name, all_labels):
     return data_set, data_set.shape[0], all_data_set.shape[1]
 
 def gpValuesExtrac(data_set, num_features):
+    """
+    Calculates the statistical limits (mean +/- 3 standard deviations) for each feature in a dataset.
+
+    Args:
+        data_set (np.ndarray): A 2D array of feature data.
+        num_features (int): The number of features (columns) to process.
+
+    Returns:
+        np.ndarray: A 2D array of shape (num_features, 2) where the first column contains the
+                    lower limit (-3 std) and the second column contains the upper limit (+3 std)
+                    for each corresponding feature.
+    """
     mu_vals = np.mean(data_set, axis=0)
     std_vals = np.std(data_set, axis=0, ddof=1) # MATLAB uses ddof=1 by default
     feat_lims = np.zeros((num_features, 2))
@@ -56,6 +83,17 @@ def gpValuesExtrac(data_set, num_features):
     return feat_lims
 
 def gpDataLim(data_set, feat_lims):
+    """
+    Clips the values of a dataset to be within the specified limits.
+
+    Args:
+        data_set (np.ndarray): The 2D array of feature data to process.
+        feat_lims (np.ndarray): A 2D array of shape (n_features, 2) defining the lower and
+                                upper bounds for each column.
+
+    Returns:
+        np.ndarray: A new 2D array where values exceeding the limits are capped.
+    """
     data_out = data_set.copy()
     m, n = data_out.shape
     for ik in range(m):
@@ -67,6 +105,17 @@ def gpDataLim(data_set, feat_lims):
     return data_out
 
 def gpNormalize(data_input, min_val, max_val):
+    """
+    Normalizes each feature (column) of the input dataset to the specified range [min_val, max_val].
+
+    Args:
+        data_input (np.ndarray): The 2D array of feature data.
+        min_val (float): The minimum value of the desired target range.
+        max_val (float): The maximum value of the desired target range.
+
+    Returns:
+        np.ndarray: A new 2D array containing the min-max normalized data.
+    """
     data_output = np.zeros_like(data_input)
     n = data_input.shape[1]
 
@@ -83,6 +132,23 @@ def gpNormalize(data_input, min_val, max_val):
     return data_output
 
 def gp_data_prepare_to_arff(path, vec_labels, cvs_name_dataset, arff_name_dataset):
+    """
+    Main function to read, limit, normalize, and export SMR feature data into ARFF and CSV formats.
+
+    The pipeline executed is:
+      1. Extract all SMR features and combine them with labels.
+      2. Calculate +/- 3 standard deviation limits for the data.
+      3. Clip outliers to those limits.
+      4. Normalize data twice (to [0, 2] then to [-1, 1]).
+      5. Shuffle the dataset randomly.
+      6. Export to CSV and ARFF formats for tools like WEKA.
+
+    Args:
+        path (str): The directory containing SMR features and where outputs will be saved.
+        vec_labels (list or np.ndarray): Target class labels for each subject image.
+        cvs_name_dataset (str): The filename for the output aggregated CSV.
+        arff_name_dataset (str): The filename for the output WEKA ARFF dataset.
+    """
     smr_name = 'smfeat_test_image_'
     data_set, num_instances, num_features = gpdata_extraction(path, smr_name, vec_labels)
 
