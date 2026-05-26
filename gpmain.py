@@ -392,10 +392,13 @@ if __name__ == '__main__':
     jpg_files = glob.glob(test_image_path + '*' + image_ext)
     num_subjects = len(jpg_files)
 
+    # Process the test images
     print(f"Processing images from {test_image_root}")
     gpComputeSRM(num_subjects, test_image_root)
 
-    vec_labels = [[0], [1], [0], [0], [1]] # Example labels for the 5 subjects    
+    # Create the ARFF file (example)    
     print(f"Preparing ARFF dataset...")
+    # Example labels for the 5 subjects, vec_labes must be adjust according to the dataset    
+    vec_labels = [[0], [1], [0], [0], [1]]
     gp_data_prepare_to_arff(test_results_path, vec_labels, cvs_name_dataset, arff_name_dataset)
     print("Done.")

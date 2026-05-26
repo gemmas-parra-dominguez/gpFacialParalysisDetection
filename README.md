@@ -1,9 +1,13 @@
 Facial Paralysis Detection on Images Using Key Point Analysis
 ============================================================================================
-Software to autmatically compute facial measures from previously extracted facial landmarks.
+Software to automatically compute facial measures from previously extracted facial landmarks.
 Required packages:
 + OpenCV 
-This project was created with opencv 4.2.0 and the additional modules that can be obtained from https://github.com/opencv/opencv_contrib
+This project was created with opencv 4.12.0
++ Dlib
+This project was created with dlib 20.0.1
++ Python
+This project was created with python 3.13.9
 
 Default:
 + input data must be stored at "test_data/"
@@ -15,7 +19,7 @@ Input data:
 + facial landmarks must be stored on a ".csv" file and named as "test_image_XXX.csv", where XXX are consecutive numbers 000, 001,...,XXX
 
 Output data:
-+ images showing the 51 facial landmarks will be named as "test_image_XXX_keypts_out.jpg"
++ images showing the 51 facial landmarks will be named as "test_image_XXX_facereg_keypts_out.jpg"
 + symmetry measures will be named as "smfeat_XXX_out.csv"
 
 If you use this software please cite the following paper:
@@ -30,23 +34,16 @@ Required packages:
 + dlib
 + OpenCV
 
-Executing the code: Download and install python (I used 3.6), I recomend to install anaconda (https://www.anaconda.com/download/) and use Spider to edit and excute the code. Once conda is installed you can add anaconda to your enviromental variables (in windows) and excute the following commands in the command line (cmd)
-
-    conda install -c menpo opencv3
-    conda install -c menpo dlib
-
-this will allow you to use openCV and dlib in your python installation. There are ways to compile your own version of dlib and OpenCV, google is your friend.
 Default:
 +input data must be stored at "test_data/"
-+results will be stored at "test_data/"
++results will be stored at "test_data/" (landmark files) and "test_results/" (images)
 
 If you use this software please cite the following paper:
 Guarin, Diego L., Joseph Dusseldorp, Tessa A. Hadlock, and Nate Jowett. "A machine learning approach for automated facial measurements in facial palsy." JAMA facial plastic surgery (2018).
 
 ===============================
 
-If you wish to create ARFF files to test the methodology, you can run the matlab script "gp_data_prepare_to_arff.m"
+If you wish to create ARFF files to test the methodology, you can run function "gp_data_prepare_to_arff(path, vec_labels, cvs_name_dataset, arff_name_dataset)"
 
 Other software:
-+ Matlab, we use Matlab R2017a but other versions should work.
 + Weka, we use the 3.8.4 version.
