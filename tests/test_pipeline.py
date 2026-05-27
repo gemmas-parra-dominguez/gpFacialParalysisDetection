@@ -101,6 +101,8 @@ def test_pipeline():
     # 4. Do not include image comparison in the unit tests - explicitly omitting any .jpg checks.
 
 import numpy as np
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import *
 import gpmain
 
