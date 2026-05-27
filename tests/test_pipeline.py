@@ -47,14 +47,21 @@ def compare_float_lines(lines1, lines2, tol=1e-3):
 
 def test_pipeline():
     # 1. Run the file command_line.py
+    print("Run the file command_line.py")
     result1 = subprocess.run([sys.executable, os.path.abspath("command_line.py")], capture_output=True, text=True)
     assert result1.returncode == 0, f"command_line.py execution failed:\n{result1.stdout}\n{result1.stderr}"
+    if result1.returncode == 0:
+        print("... command_line.py executed correctly")
 
     # 2. Run the file gpmain.py
+    print("Run the file gpmain.py")
     result2 = subprocess.run([sys.executable, os.path.abspath('gpmain.py')], capture_output=True, text=True)
     assert result2.returncode == 0, f"gpmain.py execution failed:\n{result2.stdout}\n{result2.stderr}"
+    if result2.returncode == 0:
+        print("... gpmain.py executed correctly")
 
     # 3. Compare the results file in folder test_results with files in test_ground_truth
+    print("Compare ARFF files with expected values")
     test_results_dir = 'test_results'
     ground_truth_dir = 'test_ground_truth'
 
@@ -68,7 +75,8 @@ def test_pipeline():
     res_data = parse_arff_data(arff_result)
     gt_data = parse_arff_data(arff_gt)
     compare_float_lines(res_data, gt_data)
-
+    
+    print("Compare dataset files with expected values")
     # Check face_aligment_dataset.csv
     csv_result = os.path.join(test_results_dir, 'face_aligment_dataset.csv')
     csv_gt = os.path.join(ground_truth_dir, 'face_aligment_dataset_GT.csv')
@@ -96,6 +104,4 @@ def test_pipeline():
         # For single files, do not sort the rows
         res_data = parse_csv_data(smfeat_file)
         gt_data = parse_csv_data(gt_file)
-        compare_float_lines(res_data, gt_data)
-
-    # 4. Do not include image comparison in the unit tests - explicitly omitting any .jpg checks.
+        compare_float_lines(res_data, gt_data)   

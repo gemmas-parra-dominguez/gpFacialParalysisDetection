@@ -399,6 +399,6 @@ if __name__ == '__main__':
     # Create the ARFF file (example)    
     print(f"Preparing ARFF dataset...")
     # Example labels for the 5 subjects, vec_labes must be adjust according to the dataset    
-    vec_labels = [[0], [1], [0], [0], [1]]
+    vec_labels = [[0], [0], [1], [0], [1]]
     gp_data_prepare_to_arff(test_results_path, vec_labels, cvs_name_dataset, arff_name_dataset)
     print("Done.")
