@@ -46,19 +46,19 @@ def compare_float_lines(lines1, lines2, tol=1e-3):
             assert v1 == v2, f"Value mismatch at index {i}: {v1} != {v2}"
 
 def test_pipeline():
-    # 1. Run the file command_line.py
-    print("Run the file command_line.py")
-    result1 = subprocess.run([sys.executable, os.path.abspath("command_line.py")], capture_output=True, text=True)
-    assert result1.returncode == 0, f"command_line.py execution failed:\n{result1.stdout}\n{result1.stderr}"
+    # 1. Run the file run_facial_landmarks_prediction.py
+    print("Run the file run_facial_landmarks_prediction.py")
+    result1 = subprocess.run([sys.executable, os.path.abspath("run_facial_landmarks_prediction.py")], capture_output=True, text=True)
+    assert result1.returncode == 0, f"run_facial_landmarks_prediction.py execution failed:\n{result1.stdout}\n{result1.stderr}"
     if result1.returncode == 0:
-        print("... command_line.py executed correctly")
+        print("... run_facial_landmarks_prediction.py executed correctly")
 
-    # 2. Run the file gpmain.py
-    print("Run the file gpmain.py")
-    result2 = subprocess.run([sys.executable, os.path.abspath('gpmain.py')], capture_output=True, text=True)
-    assert result2.returncode == 0, f"gpmain.py execution failed:\n{result2.stdout}\n{result2.stderr}"
+    # 2. Run the file main_facial_features_extraction.py
+    print("Run the file main_facial_features_extraction.py")
+    result2 = subprocess.run([sys.executable, os.path.abspath('main_facial_features_extraction.py')], capture_output=True, text=True)
+    assert result2.returncode == 0, f"main_facial_features_extraction.py execution failed:\n{result2.stdout}\n{result2.stderr}"
     if result2.returncode == 0:
-        print("... gpmain.py executed correctly")
+        print("... main_facial_features_extraction.py executed correctly")
 
     # 3. Compare the results file in folder test_results with files in test_ground_truth
     print("Compare ARFF files with expected values")

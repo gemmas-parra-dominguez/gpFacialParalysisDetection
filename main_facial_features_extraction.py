@@ -6,7 +6,7 @@ import glob
 
 from config import *
 from utils import readCSV, writeCSV, gpEuclideanDist
-from prepare_data_to_arff import gp_data_prepare_to_arff
+from run_prepare_data_to_arff import gp_data_prepare_to_arff
 
 def gpFaceReg(image_face, data_keypts):
     """
