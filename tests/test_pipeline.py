@@ -2,7 +2,6 @@ import sys
 import os
 import subprocess
 import glob
-import numpy as np
 
 def parse_arff_data(filepath):
     lines = []
@@ -47,13 +46,13 @@ def compare_float_lines(lines1, lines2, tol=1e-3):
             assert v1 == v2, f"Value mismatch at index {i}: {v1} != {v2}"
 
 def test_pipeline():
-    # 1. Run the file run_facial_landmarks_prediction.py
-    result1 = subprocess.run([sys.executable, os.path.abspath("run_facial_landmarks_prediction.py")], capture_output=True, text=True)
-    assert result1.returncode == 0, f"run_facial_landmarks_prediction.py execution failed:\n{result1.stdout}\n{result1.stderr}"
+    # 1. Run the file command_line.py
+    result1 = subprocess.run([sys.executable, os.path.abspath("command_line.py")], capture_output=True, text=True)
+    assert result1.returncode == 0, f"command_line.py execution failed:\n{result1.stdout}\n{result1.stderr}"
 
-    # 2. Run the file main_facial_features_extraction.py
-    result2 = subprocess.run([sys.executable, os.path.abspath('main_facial_features_extraction.py')], capture_output=True, text=True)
-    assert result2.returncode == 0, f"main_facial_features_extraction.py execution failed:\n{result2.stdout}\n{result2.stderr}"
+    # 2. Run the file gpmain.py
+    result2 = subprocess.run([sys.executable, os.path.abspath('gpmain.py')], capture_output=True, text=True)
+    assert result2.returncode == 0, f"gpmain.py execution failed:\n{result2.stdout}\n{result2.stderr}"
 
     # 3. Compare the results file in folder test_results with files in test_ground_truth
     test_results_dir = 'test_results'
@@ -97,11 +96,15 @@ def test_pipeline():
         # For single files, do not sort the rows
         res_data = parse_csv_data(smfeat_file)
         gt_data = parse_csv_data(gt_file)
-        compare_float_lines(res_data, gt_data)    
+        compare_float_lines(res_data, gt_data)
 
+    # 4. Do not include image comparison in the unit tests - explicitly omitting any .jpg checks.
+
+import numpy as np
+import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import *
-import main_facial_features_extraction as main
+import gpmain
 
 def test_gpFaceReg_synthetic():
     # Synthetic image (100x100 black square)
@@ -120,7 +123,7 @@ def test_gpFaceReg_synthetic():
     for i in range(17, 68):
         data_keypts[i] = [50, 50]
 
-    rot_face, mat_landmarks = main.gpFaceReg(image_face, data_keypts)
+    rot_face, mat_landmarks = gpmain.gpFaceReg(image_face, data_keypts)
 
     assert rot_face.shape == (100, 100, 3), "Rotated image shape mismatch"
     assert mat_landmarks.shape == (68, 2), "Rotated landmarks shape mismatch"
@@ -130,7 +133,7 @@ def test_gpPtsExt_synthetic():
     for i in range(68):
         data_keypts[i] = [i, i*2]
 
-    coord_vector = main.gpPtsExt(data_keypts)
+    coord_vector = gpmain.gpPtsExt(data_keypts)
 
     assert coord_vector.shape == (51, 2), "Extracted points shape mismatch"
     # Eyebrow points 17-27 -> 10 points
@@ -173,7 +176,7 @@ def test_gpGetFMM_synthetic():
 
 
     face_smr_data = np.zeros(TOTAL_SMR, dtype=np.float32)
-    main.gpGetFMM(norm_vector, face_smr_data)
+    gpmain.gpGetFMM(norm_vector, face_smr_data)
 
     # b_dist (5) > c_dist (4) -> face_smr_data[18] = b_dist / a_dist = 5 / 10 = 0.5
     assert abs(face_smr_data[18] - 0.5) < 1e-3
@@ -190,7 +193,7 @@ def test_gpGetSMR_synthetic():
     norm_vector[0] = [0, 0]
     norm_vector[9] = [10, 0] # delta_x = -10, delta_y = 0
 
-    main.gpGetSMR(norm_vector, face_smr_data)
+    gpmain.gpGetSMR(norm_vector, face_smr_data)
 
     # Check if angles are populated
     assert face_smr_data[0] >= 0

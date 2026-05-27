@@ -12,7 +12,7 @@ This project was created with python 3.13.9
 Default:
 + input data must be stored at "test_data/"
 + results will be stored at "test_results/"
-+   MAIN FILE is main_facial_features_extraction.py
++   MAIN FILE is gpmain.cpp
 
 Input data:
 + images should be in ".jpg" format and named as "test_image_XXX.jpg", where XXX are consecutive number 000, 001,...,XXX
@@ -28,13 +28,7 @@ If you use this software please cite the following paper:
 
 ===============================
 
-Unitary tests are provided in test_pipeline.py, using syntetic data and files inside test_ground_truth folder.
-Required packages:
-+ Pytest
-This project was created with pytest 8.4.2
-===============================
-
-If you wish to extrac the facial landmarks using the mee_shape_predictor_68_face_landmarks, you will need to run "run_facial_landmarks_prediction.py",
+If you wish to extrac the facial landmarks using the mee_shape_predictor_68_face_landmarks, you will need to run "command_line.py",
 which is a python script developed by Diego L.Guarin and modified by Gemma S. Parra-Dominguez.
 Required packages:
 + dlib
@@ -49,16 +43,7 @@ Guarin, Diego L., Joseph Dusseldorp, Tessa A. Hadlock, and Nate Jowett. "A machi
 
 ===============================
 
-If you wish to create ARFF files to test the methodology, you can run function "gp_data_prepare_to_arff(path, vec_labels, cvs_name_dataset, arff_name_dataset)" in "run_prepare_data_to_arff.py"
+If you wish to create ARFF files to test the methodology, you can run function "gp_data_prepare_to_arff(path, vec_labels, cvs_name_dataset, arff_name_dataset)"
 
 Other software:
 + Weka, we use the 3.8.4 version.
-
-===============================
-# Suggested workflow
-
-Using CLI and the correct environment with the required packages, execute:
-- python run_facial_landmarks_prediction.py
-- python main_facial_features_extraction.py
-- pytest -v  tests\test_pipeline.py
-
