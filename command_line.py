@@ -1,3 +1,4 @@
+import sys
 """
 Created on Sun Aug 27 18:17:25 2017
 
@@ -18,8 +19,7 @@ Facial Paralysis Detection on Images Using Key Point Analysis.
 Appl. Sci. 2021, 11, 2435. https://doi.org/10.3390/app11052435
 
 """
-import sys
-import os 
+import os
 import cv2
 import numpy as np
 import glob
@@ -36,21 +36,21 @@ def ComputeFaceLandMarks(image, ModelName):
     detector = get_frontal_face_detector()
     if os.name == 'posix': #is a mac or linux
         scriptDir = os.path.dirname(sys.argv[0])
-    else: #is a  windows 
+    else: #is a  windows
         scriptDir = os.getcwd()
     if ModelName == 'iBUG':  #user wants to use iBUGS model
         predictor = shape_predictor(scriptDir + os.path.sep + 'include' +os.path.sep +'data'+ os.path.sep + ibug_predictor)
     elif ModelName == 'MEE':  #user wants to use MEE model
         predictor = shape_predictor(scriptDir + os.path.sep + 'include' +os.path.sep +'data'+ os.path.sep + mee_predictor)
-    else: #user wants to use own model        
+    else: #user wants to use own model
         predictor = shape_predictor(os.path.normpath(ModelName))
-        
-    height, width, d = image.shape                        
+
+    height, width, d = image.shape
     if d > 1:
-        #transform to gray 
+        #transform to gray
         gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     #resize to speed up face dectection
-    #height, width = gray.shape[:2]  
+    #height, width = gray.shape[:2]
     newWidth=200
     ScalingFactor=width/newWidth
     newHeight=int(height/ScalingFactor)
@@ -60,11 +60,11 @@ def ComputeFaceLandMarks(image, ModelName):
     rects = detector(smallImage,1)
 
     if len(rects) == 0 : #if no face detected then try again with the full size image
-            rects = detector(gray,1)            
+            rects = detector(gray,1)
 
-    if len(rects) == 1:   
+    if len(rects) == 1:
         #now we have only one face in the image
-        #function to obtain facial landmarks using dlib 
+        #function to obtain facial landmarks using dlib
         #given an image and a face
         #rectangle
         for (i, rect) in enumerate(rects):
@@ -73,22 +73,22 @@ def ComputeFaceLandMarks(image, ModelName):
 
             #adjust face position using the scaling factor
             mod_rect=rectangle(
-                    left=int(rect.left() * ScalingFactor), 
-                    top=int(rect.top() * ScalingFactor), 
-                    right=int(rect.right() * ScalingFactor), 
+                    left=int(rect.left() * ScalingFactor),
+                    top=int(rect.top() * ScalingFactor),
+                    right=int(rect.right() * ScalingFactor),
                     bottom=int(rect.bottom() * ScalingFactor))
 
-            #predict facial landmarks 
-            shape_dlib = predictor(image, mod_rect)   
-            #shape_dlib = predictor(gray, rect) 
+            #predict facial landmarks
+            shape_dlib = predictor(image, mod_rect)
+            #shape_dlib = predictor(gray, rect)
             #transform shape object to np.matrix type
             for k in range(0,68):
                 shape[k] = (shape_dlib.part(k).x, shape_dlib.part(k).y)
                 if shape[k,0]<= 0 : shape[k,0] = 1
                 if shape[k,1]<= 0 : shape[k,1] = 1
-        
+
             #position of the face in the image
-            boundingBox=[int(rect.left() * ScalingFactor), 
+            boundingBox=[int(rect.left() * ScalingFactor),
                         int(rect.top() * ScalingFactor),
                         int(rect.right() * ScalingFactor) - int(rect.left() * ScalingFactor),
                         int(rect.bottom() * ScalingFactor) - int(rect.top() * ScalingFactor)]
@@ -98,7 +98,7 @@ def DrawResults(image, shape, boundingBox):
     for k in range(0, 68):
         cv2.circle(image,(shape[k,0],shape[k,1]), 5, (0,0,255), -1)
 #    cv2.rectangle(image, (boundingBox[0],boundingBox[1]), (boundingBox[2],boundingBox[3]), (255, 0 , 0), 2)
-           
+
 
 if __name__ == "__main__":
     modelName = 'MEE' # Método (MEE|iBug)
@@ -114,6 +114,6 @@ if __name__ == "__main__":
         shape, boundingBox =  ComputeFaceLandMarks(image, modelName)
         DrawResults(image, shape, boundingBox)
         np.savetxt(test_image_path + os.path.sep + filename + csv_name, shape, delimiter=',', fmt='%d')
-        cv2.imwrite(test_results_path + os.path.sep + filename + '_out' + image_ext, image)        
+        cv2.imwrite(test_results_path + os.path.sep + filename + '_out' + image_ext, image)
         n = n +1
     
