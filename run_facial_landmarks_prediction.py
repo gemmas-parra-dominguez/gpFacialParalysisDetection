@@ -1,4 +1,3 @@
-import sys
 """
 Created on Sun Aug 27 18:17:25 2017
 
@@ -19,6 +18,7 @@ Facial Paralysis Detection on Images Using Key Point Analysis.
 Appl. Sci. 2021, 11, 2435. https://doi.org/10.3390/app11052435
 
 """
+import sys
 import os
 import cv2
 import numpy as np
