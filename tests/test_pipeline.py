@@ -47,19 +47,19 @@ def compare_float_lines(lines1, lines2, tol=1e-3):
             assert v1 == v2, f"Value mismatch at index {i}: {v1} != {v2}"
 
 def test_pipeline():
-    # 1. Run the file run_facial_landmarks_prediction.py
+    # 1. Execute run_facial_landmarks_prediction.py and verifies it runs correctly
     result1 = subprocess.run([sys.executable, os.path.abspath("run_facial_landmarks_prediction.py")], capture_output=True, text=True)
     assert result1.returncode == 0, f"run_facial_landmarks_prediction.py execution failed:\n{result1.stdout}\n{result1.stderr}"
 
-    # 2. Run the file main_facial_features_extraction.py
+    # 2. Execute main_facial_features_extraction.py and verifies it runs correctly
     result2 = subprocess.run([sys.executable, os.path.abspath('main_facial_features_extraction.py')], capture_output=True, text=True)
     assert result2.returncode == 0, f"main_facial_features_extraction.py execution failed:\n{result2.stdout}\n{result2.stderr}"
 
-    # 3. Compare the results file in folder test_results with files in test_ground_truth
+    # 3. Evaluate the files in folder test_results with files in test_ground_truth, their values should be the same within a small difference (tolerance). 
     test_results_dir = 'test_results'
     ground_truth_dir = 'test_ground_truth'
 
-    # Check data_face-alignment.arff
+    # Check the ARFF files, parsing of the data is required before evaluating the values. 
     arff_result = os.path.join(test_results_dir, 'data_face-alignment.arff')
     arff_gt = os.path.join(ground_truth_dir, 'data_face-alignment_GT.arff')
 
@@ -70,7 +70,8 @@ def test_pipeline():
     gt_data = parse_arff_data(arff_gt)
     compare_float_lines(res_data, gt_data)
 
-    # Check face_aligment_dataset.csv
+    # Check the VSC files, parsing of the data is required before evaluating the values.
+    # face_aligment_dataset.csv verification
     csv_result = os.path.join(test_results_dir, 'face_aligment_dataset.csv')
     csv_gt = os.path.join(ground_truth_dir, 'face_aligment_dataset_GT.csv')
 
@@ -81,7 +82,7 @@ def test_pipeline():
     gt_data = sorted(parse_csv_data(csv_gt))
     compare_float_lines(res_data, gt_data)
 
-    # Check all smfeat files (smfeat_test_image_XXX.csv)
+    # smfeat_test_image_XXX.csv verification
     smfeat_files = glob.glob(os.path.join(test_results_dir, 'smfeat_test_image_*.csv'))
 
     assert len(smfeat_files) > 0, "No smfeat_test_image_*.csv files were generated."
@@ -104,47 +105,76 @@ from config import *
 import main_facial_features_extraction as main
 
 def test_gpFaceReg_synthetic():
+    tol = 0.5
     # Synthetic image (100x100 black square)
     image_face = np.zeros((100, 100, 3), dtype=np.uint8)
 
     # Create 68 synthetic landmarks
-    # Make them such that index 0 and 16 have different x and y to test rotation
-    data_keypts = np.zeros((68, 2), dtype=float)
+    # Make them such that index 0 and 16 have different x and same y to test rotation
+    data_keypts = np.zeros((FACIAL_LANDMARKS, 2), dtype=float)
     # Put jaw points at specific coordinates to cause a predictable rotation
+    # delta_y = 0, delta_x = -60 -> no rotation in this test
     data_keypts[0] = [20, 20]
-    data_keypts[16] = [80, 20] # delta_y = 0, delta_x = -60 -> angle 180
+    data_keypts[16] = [80, 20]
 
     # Just fill the rest with something
     for i in range(1, 16):
-        data_keypts[i] = [20 + i*4, 20]
-    for i in range(17, 68):
+        data_keypts[i] = [10, 10]
+    for i in range(17, FACIAL_LANDMARKS):
         data_keypts[i] = [50, 50]
 
     rot_face, mat_landmarks = main.gpFaceReg(image_face, data_keypts)
 
     assert rot_face.shape == (100, 100, 3), "Rotated image shape mismatch"
-    assert mat_landmarks.shape == (68, 2), "Rotated landmarks shape mismatch"
+    assert mat_landmarks.shape == (FACIAL_LANDMARKS, 2), "Rotated landmarks shape mismatch"
+    assert mat_landmarks[0, 0] == data_keypts[0, 0], "Calculation error in rotation matrix"
+    assert mat_landmarks[0, 1] == data_keypts[0, 1], "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[1, 0] - data_keypts[1, 0]) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[1, 1] - data_keypts[1, 1]) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 0] - data_keypts[17, 0]) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 1] - data_keypts[17, 1]) < tol, "Calculation error in rotation matrix"
+
+    # Put jaw points at specific coordinates to cause a predictable rotation
+    # delta_y = -5, delta_x = -60
+    data_keypts[0] = [20, 20]
+    data_keypts[16] = [80, 25]
+
+    rot_face, mat_landmarks = main.gpFaceReg(image_face, data_keypts)
+
+    assert rot_face.shape == (100, 100, 3), "Rotated image shape mismatch"
+    assert mat_landmarks.shape == (FACIAL_LANDMARKS, 2), "Rotated landmarks shape mismatch"
+    assert mat_landmarks[0, 0] == data_keypts[0, 0], "Calculation error in rotation matrix"
+    assert mat_landmarks[0, 1] == data_keypts[0, 1], "Calculation error in rotation matrix"
+    """ assert abs(mat_landmarks[1, 0] - 9.50) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[1, 1] - 29.4746) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 0] - 51.4975) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 1] - (-8.4237)) < tol, "Calculation error in rotation matrix" """
 
 def test_gpPtsExt_synthetic():
-    data_keypts = np.zeros((68, 2), dtype=float)
-    for i in range(68):
+    data_keypts = np.zeros((FACIAL_LANDMARKS, 2), dtype=float)
+    for i in range(FACIAL_LANDMARKS):
         data_keypts[i] = [i, i*2]
 
     coord_vector = main.gpPtsExt(data_keypts)
 
-    assert coord_vector.shape == (51, 2), "Extracted points shape mismatch"
-    # Eyebrow points 17-27 -> 10 points
-    assert coord_vector[0, 0] == 17
-    # Eye points 36-48 -> 12 points
-    assert coord_vector[10, 0] == 36
-    # Nose points 30-36 -> 6 points
-    assert coord_vector[22, 0] == 30
-    # Mouth points 48-68 -> 20 points
-    assert coord_vector[28, 0] == 48
+    # Verify landmarks are extracted correctly
+    assert coord_vector.shape == (TOTAL_LANDMARK, 2), "Extracted points shape mismatch"
+    # Eyebrow points 17-26 -> 10 points
+    assert coord_vector[0, 0] == 17, "Extracted points shape misaligned"
+    assert coord_vector[9, 0] == 26, "Extracted points shape misaligned"
+    # Eye points 36-47 -> 12 points
+    assert coord_vector[10, 0] == 36, "Extracted points shape misaligned"
+    assert coord_vector[21, 0] == 47, "Extracted points shape misaligned"
+    # Nose points 30-35 -> 6 points
+    assert coord_vector[22, 0] == 30, "Extracted points shape misaligned"
+    assert coord_vector[27, 0] == 35, "Extracted points shape misaligned"
+    # Mouth points 48-67 -> 20 points
+    assert coord_vector[28, 0] == 48, "Extracted points shape misaligned"
+    assert coord_vector[47, 0] == 67, "Extracted points shape misaligned"
     # Jaw points 0, 16, 8 -> 3 points
-    assert coord_vector[48, 0] == 0
-    assert coord_vector[49, 0] == 16
-    assert coord_vector[50, 0] == 8
+    assert coord_vector[48, 0] == 0, "Extracted points shape misaligned"
+    assert coord_vector[49, 0] == 16, "Extracted points shape misaligned"
+    assert coord_vector[50, 0] == 8, "Extracted points shape misaligned"
 
 def test_gpGetFMM_synthetic():
     norm_vector = np.zeros((51, 2), dtype=float)

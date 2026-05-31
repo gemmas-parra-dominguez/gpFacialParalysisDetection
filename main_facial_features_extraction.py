@@ -43,8 +43,8 @@ def gpFaceReg(image_face, data_keypts):
 
     mat_landmarks = data_keypts.copy()
     for ik in range(data_keypts.shape[0]):
-        mat_landmarks[ik, 0] = data_keypts[ik, 0] * rot_mat[0, 0] + data_keypts[ik, 1] * rot_mat[0, 1] + rot_mat[0, 2]
-        mat_landmarks[ik, 1] = data_keypts[ik, 0] * rot_mat[1, 0] + data_keypts[ik, 1] * rot_mat[1, 1] + rot_mat[1, 2]
+        mat_landmarks[ik, 0] = round(data_keypts[ik, 0] * rot_mat[0, 0] + data_keypts[ik, 1] * rot_mat[0, 1] + rot_mat[0, 2], 4)
+        mat_landmarks[ik, 1] = round(data_keypts[ik, 0] * rot_mat[1, 0] + data_keypts[ik, 1] * rot_mat[1, 1] + rot_mat[1, 2], 4)
 
     return rot_face, mat_landmarks
 
@@ -65,39 +65,32 @@ def gpPtsExt(mat_landmarks):
 
     # Eyebrow
     for ik in range(17, 27):
-        coord_vector[cont, 0] = mat_landmarks[ik, 0]
-        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        coord_vector[cont] = mat_landmarks[ik]
         cont += 1
 
     # Eye
     for ik in range(36, 48):
-        coord_vector[cont, 0] = mat_landmarks[ik, 0]
-        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        coord_vector[cont] = mat_landmarks[ik]
         cont += 1
 
     # Nose
     for ik in range(30, 36):
-        coord_vector[cont, 0] = mat_landmarks[ik, 0]
-        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        coord_vector[cont] = mat_landmarks[ik]
         cont += 1
 
     # Mouth
     for ik in range(48, 68):
-        coord_vector[cont, 0] = mat_landmarks[ik, 0]
-        coord_vector[cont, 1] = mat_landmarks[ik, 1]
+        coord_vector[cont] = mat_landmarks[ik]
         cont += 1
 
     # Jaw
-    coord_vector[cont, 0] = mat_landmarks[0, 0]
-    coord_vector[cont, 1] = mat_landmarks[0, 1]
+    coord_vector[cont] = mat_landmarks[0]
     cont += 1
 
-    coord_vector[cont, 0] = mat_landmarks[16, 0]
-    coord_vector[cont, 1] = mat_landmarks[16, 1]
+    coord_vector[cont] = mat_landmarks[16]
     cont += 1
 
-    coord_vector[cont, 0] = mat_landmarks[8, 0]
-    coord_vector[cont, 1] = mat_landmarks[8, 1]
+    coord_vector[cont] = mat_landmarks[8]
 
     return coord_vector
 
