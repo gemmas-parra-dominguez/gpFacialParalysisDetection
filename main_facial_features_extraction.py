@@ -107,36 +107,36 @@ def gpGetFMM(norm_vector, face_smr_data):
         face_smr_data (np.ndarray): A 2D column vector storing the final SMR metrics.
                                     (Modified in place).
     """
-    a_dist = gpEuclideanDist(norm_vector[49, 0], norm_vector[49, 1], norm_vector[48, 0], norm_vector[48, 1])
-    b_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[28, 0], norm_vector[28, 1])
-    c_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[34, 0], norm_vector[34, 1])
-    d_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[2, 0], norm_vector[2, 1])
-    e_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[3, 0], norm_vector[3, 1])
-    f_dist = gpEuclideanDist(norm_vector[6, 0], norm_vector[6, 1], norm_vector[37, 0], norm_vector[37, 1])
-    g_dist = gpEuclideanDist(norm_vector[7, 0], norm_vector[7, 1], norm_vector[37, 0], norm_vector[37, 1])
-    h_dist = gpEuclideanDist(norm_vector[34, 0], norm_vector[34, 1], norm_vector[28, 0], norm_vector[28, 1])
-    i_dist = gpEuclideanDist(norm_vector[31, 0], norm_vector[31, 1], norm_vector[25, 0], norm_vector[25, 1])
+    a_dist = gpEuclideanDist(norm_vector[49], norm_vector[48])
+    b_dist = gpEuclideanDist(norm_vector[37], norm_vector[28])
+    c_dist = gpEuclideanDist(norm_vector[37], norm_vector[34])
+    d_dist = gpEuclideanDist(norm_vector[37], norm_vector[2])
+    e_dist = gpEuclideanDist(norm_vector[37], norm_vector[3])
+    f_dist = gpEuclideanDist(norm_vector[6],  norm_vector[37])
+    g_dist = gpEuclideanDist(norm_vector[7],  norm_vector[37])
+    h_dist = gpEuclideanDist(norm_vector[34], norm_vector[28])
+    i_dist = gpEuclideanDist(norm_vector[31], norm_vector[25])
 
-    sl_dist = gpEuclideanDist(norm_vector[29, 0], norm_vector[29, 1], norm_vector[39, 0], norm_vector[39, 1])
-    su_dist = gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[38, 0], norm_vector[38, 1])
-    tl_dist = gpEuclideanDist(norm_vector[33, 0], norm_vector[33, 1], norm_vector[35, 0], norm_vector[35, 1])
-    tu_dist = gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[36, 0], norm_vector[36, 1])
+    sl_dist = gpEuclideanDist(norm_vector[29], norm_vector[39])
+    su_dist = gpEuclideanDist(norm_vector[30], norm_vector[38])
+    tl_dist = gpEuclideanDist(norm_vector[33], norm_vector[35])
+    tu_dist = gpEuclideanDist(norm_vector[32], norm_vector[36])
 
-    ml_dist = gpEuclideanDist(norm_vector[28, 0], norm_vector[28, 1], norm_vector[29, 0], norm_vector[29, 1])
-    ml_dist += gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[29, 0], norm_vector[29, 1])
-    ml_dist += gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[31, 0], norm_vector[31, 1])
-    ml_dist += gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[31, 0], norm_vector[31, 1])
-    ml_dist += gpEuclideanDist(norm_vector[38, 0], norm_vector[38, 1], norm_vector[37, 0], norm_vector[37, 1])
-    ml_dist += gpEuclideanDist(norm_vector[38, 0], norm_vector[38, 1], norm_vector[39, 0], norm_vector[39, 1])
-    ml_dist += gpEuclideanDist(norm_vector[28, 0], norm_vector[28, 1], norm_vector[39, 0], norm_vector[39, 1])
+    ml_dist = gpEuclideanDist(norm_vector[28],  norm_vector[29])
+    ml_dist += gpEuclideanDist(norm_vector[30], norm_vector[29])
+    ml_dist += gpEuclideanDist(norm_vector[30], norm_vector[31])
+    ml_dist += gpEuclideanDist(norm_vector[37], norm_vector[31])
+    ml_dist += gpEuclideanDist(norm_vector[38], norm_vector[37])
+    ml_dist += gpEuclideanDist(norm_vector[38], norm_vector[39])
+    ml_dist += gpEuclideanDist(norm_vector[28], norm_vector[39])
 
-    mr_dist = gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[31, 0], norm_vector[31, 1])
-    mr_dist += gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[33, 0], norm_vector[33, 1])
-    mr_dist += gpEuclideanDist(norm_vector[34, 0], norm_vector[34, 1], norm_vector[33, 0], norm_vector[33, 1])
-    mr_dist += gpEuclideanDist(norm_vector[34, 0], norm_vector[34, 1], norm_vector[35, 0], norm_vector[35, 1])
-    mr_dist += gpEuclideanDist(norm_vector[36, 0], norm_vector[36, 1], norm_vector[35, 0], norm_vector[35, 1])
-    mr_dist += gpEuclideanDist(norm_vector[36, 0], norm_vector[36, 1], norm_vector[37, 0], norm_vector[37, 1])
-    mr_dist += gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[31, 0], norm_vector[31, 1])
+    mr_dist = gpEuclideanDist(norm_vector[32],  norm_vector[31])
+    mr_dist += gpEuclideanDist(norm_vector[32], norm_vector[33])
+    mr_dist += gpEuclideanDist(norm_vector[34], norm_vector[33])
+    mr_dist += gpEuclideanDist(norm_vector[34], norm_vector[35])
+    mr_dist += gpEuclideanDist(norm_vector[36], norm_vector[35])
+    mr_dist += gpEuclideanDist(norm_vector[36], norm_vector[37])
+    mr_dist += gpEuclideanDist(norm_vector[37], norm_vector[31])
 
     if b_dist > c_dist:
         face_smr_data[18] = b_dist / a_dist
@@ -182,34 +182,34 @@ def gpGetSMR(norm_vector, face_smr_data):
         norm_vector (np.ndarray): A (51, 2) array of normalized extracted landmarks.
         face_smr_data (np.ndarray): A 2D column vector storing the final SMR metrics.
                                     (Modified in place).
-    """
-    b_dist = gpEuclideanDist(norm_vector[49, 0], norm_vector[49, 1], norm_vector[48, 0], norm_vector[48, 1])
-    e_dist = gpEuclideanDist(norm_vector[37, 0], norm_vector[37, 1], norm_vector[10, 0], norm_vector[10, 1])
-    f_dist = gpEuclideanDist(norm_vector[19, 0], norm_vector[19, 1], norm_vector[37, 0], norm_vector[37, 1])
-    gl_dist = gpEuclideanDist(norm_vector[13, 0], norm_vector[13, 1], norm_vector[10, 0], norm_vector[10, 1])
-    gr_dist = gpEuclideanDist(norm_vector[19, 0], norm_vector[19, 1], norm_vector[16, 0], norm_vector[16, 1])
-    j_dist = gpEuclideanDist(norm_vector[10, 0], norm_vector[10, 1], norm_vector[48, 0], norm_vector[48, 1])
-    k_dist = gpEuclideanDist(norm_vector[49, 0], norm_vector[49, 1], norm_vector[19, 0], norm_vector[19, 1])
-    l_dist = gpEuclideanDist(norm_vector[50, 0], norm_vector[50, 1], norm_vector[37, 0], norm_vector[37, 1])
-    m_dist = gpEuclideanDist(norm_vector[10, 0], norm_vector[10, 1], norm_vector[23, 0], norm_vector[23, 1])
-    n_dist = gpEuclideanDist(norm_vector[19, 0], norm_vector[19, 1], norm_vector[27, 0], norm_vector[27, 1])
-    o_dist = gpEuclideanDist(norm_vector[23, 0], norm_vector[23, 1], norm_vector[37, 0], norm_vector[37, 1])
-    p_dist = gpEuclideanDist(norm_vector[27, 0], norm_vector[27, 1], norm_vector[37, 0], norm_vector[37, 1])
+    """    
+    b_dist = gpEuclideanDist(norm_vector[49],  norm_vector[48])
+    e_dist = gpEuclideanDist(norm_vector[37],  norm_vector[10])
+    f_dist = gpEuclideanDist(norm_vector[19],  norm_vector[37])
+    gl_dist = gpEuclideanDist(norm_vector[13], norm_vector[10])
+    gr_dist = gpEuclideanDist(norm_vector[19], norm_vector[16])
+    j_dist = gpEuclideanDist(norm_vector[10],  norm_vector[48])
+    k_dist = gpEuclideanDist(norm_vector[49],  norm_vector[19])
+    l_dist = gpEuclideanDist(norm_vector[50],  norm_vector[37])
+    m_dist = gpEuclideanDist(norm_vector[10],  norm_vector[23])
+    n_dist = gpEuclideanDist(norm_vector[19],  norm_vector[27])
+    o_dist = gpEuclideanDist(norm_vector[23],  norm_vector[37])
+    p_dist = gpEuclideanDist(norm_vector[27],  norm_vector[37])
 
-    ql_dist = gpEuclideanDist(norm_vector[11, 0], norm_vector[11, 1], norm_vector[15, 0], norm_vector[15, 1])
-    qr_dist = gpEuclideanDist(norm_vector[12, 0], norm_vector[12, 1], norm_vector[14, 0], norm_vector[14, 1])
+    ql_dist = gpEuclideanDist(norm_vector[11], norm_vector[15])
+    qr_dist = gpEuclideanDist(norm_vector[12], norm_vector[14])
     q_avg = (abs(norm_vector[11, 1] - norm_vector[15, 1]) + abs(norm_vector[12, 1] - norm_vector[14, 1])) / 2.0
     if q_avg <= MIN_EVAL: q_avg = 0
 
-    rl_dist = gpEuclideanDist(norm_vector[17, 0], norm_vector[17, 1], norm_vector[21, 0], norm_vector[21, 1])
-    rr_dist = gpEuclideanDist(norm_vector[18, 0], norm_vector[18, 1], norm_vector[20, 0], norm_vector[20, 1])
+    rl_dist = gpEuclideanDist(norm_vector[17], norm_vector[21])
+    rr_dist = gpEuclideanDist(norm_vector[18], norm_vector[20])
     r_avg = (abs(norm_vector[17, 1] - norm_vector[21, 1]) + abs(norm_vector[18, 1] - norm_vector[20, 1])) / 2.0
     if r_avg <= MIN_EVAL: r_avg = 0
 
-    sl_dist = gpEuclideanDist(norm_vector[29, 0], norm_vector[29, 1], norm_vector[39, 0], norm_vector[39, 1])
-    su_dist = gpEuclideanDist(norm_vector[30, 0], norm_vector[30, 1], norm_vector[38, 0], norm_vector[38, 1])
-    tl_dist = gpEuclideanDist(norm_vector[33, 0], norm_vector[33, 1], norm_vector[35, 0], norm_vector[35, 1])
-    tu_dist = gpEuclideanDist(norm_vector[32, 0], norm_vector[32, 1], norm_vector[36, 0], norm_vector[36, 1])
+    sl_dist = gpEuclideanDist(norm_vector[29], norm_vector[39])
+    su_dist = gpEuclideanDist(norm_vector[30], norm_vector[38])
+    tl_dist = gpEuclideanDist(norm_vector[33], norm_vector[35])
+    tu_dist = gpEuclideanDist(norm_vector[32], norm_vector[36])
 
     i_dist = norm_vector[0, 1] + norm_vector[1, 1] + norm_vector[2, 1] + norm_vector[3, 1] + norm_vector[4, 1]
     i_dist /= 5

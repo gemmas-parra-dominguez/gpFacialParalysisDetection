@@ -178,34 +178,33 @@ def test_gpPtsExt_synthetic():
 def test_gpGetFMM_synthetic():
     norm_vector = np.zeros((51, 2), dtype=float)
     # Provide simple coordinates
-    for i in range(51):
+    for i in range(TOTAL_LANDMARK):
         norm_vector[i] = [i, i*2]
 
     # Prevent division by zero by separating some points used for distance
-    norm_vector[48] = [0, 0]
-    norm_vector[49] = [10, 0] # a_dist = 10
-
-    norm_vector[37] = [0, 0]
     norm_vector[28] = [0, 5]
     norm_vector[34] = [0, 4]
-
-    norm_vector[28] = [0, 5]  # b_dist = 5
-
-    norm_vector[34] = [0, 4]  # c_dist = 4 (b_dist > c_dist)
-
-    # set h_dist points
-    # wait, h_dist uses 34 and 28, so we cannot overwrite them
-    # b_dist uses 37 and 28. c_dist uses 37 and 34.
-    norm_vector[37] = [0, 5] # b_dist to 28(0,0)=5
-    norm_vector[28] = [0, 0]
-    norm_vector[34] = [0, 1] # c_dist to 37(0,5)=4. h_dist to 28(0,0)=1
-
+    norm_vector[37] = [0, 0]
+    norm_vector[48] = [0, 0]
+    norm_vector[49] = [10, 0]
 
     face_smr_data = np.zeros(TOTAL_SMR, dtype=np.float32)
     main.gpGetFMM(norm_vector, face_smr_data)
 
     # b_dist (5) > c_dist (4) -> face_smr_data[18] = b_dist / a_dist = 5 / 10 = 0.5
-    assert abs(face_smr_data[18] - 0.5) < 1e-3
+    assert abs(face_smr_data[18] - 0.5) < MIN_EVAL
+    # sl_dist (22.36) > tl_dist (4.47) -> face_smr_data[19] = sl_dist / h_dist = 22.36 / 1 = 22.3607
+    assert abs(face_smr_data[19] - 22.3607) < MIN_EVAL
+    # su_dist (17.8885) > tu_dist (8.9443) -> face_smr_data[20] = su_dist / h_dist = 17.8885 / 1 = 17.8885
+    assert abs(face_smr_data[20] - 17.8885) < MIN_EVAL
+    # ml_dist (304.1769) > mr_dist (301.4662) -> face_smr_data[21] = ml_dist / h_dist = 304.1769 / 1 = 304.1769
+    assert abs(face_smr_data[21] - 304.1769) < MIN_EVAL
+    # d_dist (4.4721) > g_dist (15.6525) -> face_smr_data[25] = g_dist / a_dist = 15.6525 / 10 = 1.5652
+    assert abs(face_smr_data[25] - 1.5652) < MIN_EVAL
+    # e_dist (6.7082) > f_dist (13.4164) -> face_smr_data[26] = f_dist / a_dist = 13.4164 / 10 = 1.3416
+    assert abs(face_smr_data[26] - 1.3416) < MIN_EVAL
+    # i_dist / a_dist -> face_smr_data[28] = 13.4164 / 10 = 1.3416
+    assert abs(face_smr_data[28] - 1.3416) < MIN_EVAL
 
 def test_gpGetSMR_synthetic():
     norm_vector = np.zeros((51, 2), dtype=float)

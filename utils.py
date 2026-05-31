@@ -40,17 +40,15 @@ def writeCSV(filename, m):
             for row in m:
                 writer.writerow(row)
 
-def gpEuclideanDist(x_land, y_land, x_key, y_key):
+def gpEuclideanDist(first_point, second_point):
     """
     Computes the Euclidean distance between two 2D points.
 
     Args:
-        x_land (float): The x-coordinate of the first point.
-        y_land (float): The y-coordinate of the first point.
-        x_key (float): The x-coordinate of the second point.
-        y_key (float): The y-coordinate of the second point.
+        first_point (float): The x and y-coordinates of the first point.
+        second_point (float): The x and y-coordinates of the second point.
 
     Returns:
         float: The straight-line Euclidean distance between the points.
     """
-    return math.sqrt((x_land - x_key)**2 + (y_land - y_key)**2)
+    return math.sqrt((first_point[0] - second_point[0])**2 + (first_point[1] - second_point[1])**2)
