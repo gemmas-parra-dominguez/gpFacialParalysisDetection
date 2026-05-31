@@ -105,7 +105,6 @@ from config import *
 import main_facial_features_extraction as main
 
 def test_gpFaceReg_synthetic():
-    tol = 0.5
     # Synthetic image (100x100 black square)
     image_face = np.zeros((100, 100, 3), dtype=np.uint8)
 
@@ -129,10 +128,10 @@ def test_gpFaceReg_synthetic():
     assert mat_landmarks.shape == (FACIAL_LANDMARKS, 2), "Rotated landmarks shape mismatch"
     assert mat_landmarks[0, 0] == data_keypts[0, 0], "Calculation error in rotation matrix"
     assert mat_landmarks[0, 1] == data_keypts[0, 1], "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[1, 0] - data_keypts[1, 0]) < tol, "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[1, 1] - data_keypts[1, 1]) < tol, "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[17, 0] - data_keypts[17, 0]) < tol, "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[17, 1] - data_keypts[17, 1]) < tol, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[1, 0] - data_keypts[1, 0]) < MIN_EVAL, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[1, 1] - data_keypts[1, 1]) < MIN_EVAL, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 0] - data_keypts[17, 0]) < MIN_EVAL, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 1] - data_keypts[17, 1]) < MIN_EVAL, "Calculation error in rotation matrix"
 
     # Put jaw points at specific coordinates to cause a predictable rotation
     # delta_y = -5, delta_x = -60
@@ -145,10 +144,10 @@ def test_gpFaceReg_synthetic():
     assert mat_landmarks.shape == (FACIAL_LANDMARKS, 2), "Rotated landmarks shape mismatch"
     assert mat_landmarks[0, 0] == data_keypts[0, 0], "Calculation error in rotation matrix"
     assert mat_landmarks[0, 1] == data_keypts[0, 1], "Calculation error in rotation matrix"
-    """ assert abs(mat_landmarks[1, 0] - 9.50) < tol, "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[1, 1] - 29.4746) < tol, "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[17, 0] - 51.4975) < tol, "Calculation error in rotation matrix"
-    assert abs(mat_landmarks[17, 1] - (-8.4237)) < tol, "Calculation error in rotation matrix" """
+    assert abs(mat_landmarks[1, 0] - 9.2041) < MIN_EVAL, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[1, 1] - 10.8650) < MIN_EVAL, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 0] - 52.3877) < MIN_EVAL, "Calculation error in rotation matrix"
+    assert abs(mat_landmarks[17, 1] - 47.4050) < MIN_EVAL, "Calculation error in rotation matrix"
 
 def test_gpPtsExt_synthetic():
     data_keypts = np.zeros((FACIAL_LANDMARKS, 2), dtype=float)
