@@ -176,7 +176,7 @@ def test_gpPtsExt_synthetic():
     assert coord_vector[50, 0] == 8, "Extracted points shape misaligned"
 
 def test_gpGetFMM_synthetic():
-    norm_vector = np.zeros((51, 2), dtype=float)
+    norm_vector = np.zeros((TOTAL_LANDMARK, 2), dtype=float)
     # Provide simple coordinates
     for i in range(TOTAL_LANDMARK):
         norm_vector[i] = [i, i*2]
@@ -207,18 +207,65 @@ def test_gpGetFMM_synthetic():
     assert abs(face_smr_data[28] - 1.3416) < MIN_EVAL
 
 def test_gpGetSMR_synthetic():
-    norm_vector = np.zeros((51, 2), dtype=float)
+    norm_vector = np.zeros((TOTAL_LANDMARK, 2), dtype=float)
     # Provide simple coordinates
-    for i in range(51):
+    for i in range(TOTAL_LANDMARK):
         norm_vector[i] = [i, i*2]
 
     face_smr_data = np.zeros(TOTAL_SMR, dtype=np.float32)
 
     # Avoid zero division
     norm_vector[0] = [0, 0]
-    norm_vector[9] = [10, 0] # delta_x = -10, delta_y = 0
+    norm_vector[2] = [1, 1]
+    norm_vector[4] = [10, 51]
+    norm_vector[7] = [0, 20]
+    norm_vector[9] = [0, 10]
 
     main.gpGetSMR(norm_vector, face_smr_data)
 
     # Check if angles are populated
-    assert face_smr_data[0] >= 0
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[0] - 90) < MIN_EVAL
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[1] -  86.9872) < MIN_EVAL
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[2] - 83.0470)< MIN_EVAL
+    # a_dist > i_dist -> face_smr_data[3] = i_dist / a_dist = 12 / 13.6 = 0.8823
+    assert abs(face_smr_data[3] - 0.8823)< MIN_EVAL
+    # c_dist
+    assert abs(face_smr_data[4] - 10e6)< MIN_EVAL
+    # d_dist
+    assert abs(face_smr_data[5] - 19)< MIN_EVAL
+    # h_dist
+    assert abs(face_smr_data[6] - 8.2)< MIN_EVAL
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[7] - 63.4349)< MIN_EVAL
+    # gl_dist < gr_dist -> face_smr_data[8] = gl_dist / gr_dist = 6.7082 / 6.7082 = 1
+    assert abs(face_smr_data[8] - 1)< MIN_EVAL
+    # j_dist > k_dist -> face_smr_data[9] = k_dist / j_dist = 67.0820 / 84.9706 = 0.7895
+    assert abs(face_smr_data[9] - 0.7895)< MIN_EVAL
+    # m_dist > n_dist -> face_smr_data[10] = n_dist / m_dist = 17.8885 / 29.0689 = 0.6154
+    assert abs(face_smr_data[10] - 0.6154)< MIN_EVAL
+    # q_avg == r_avg -> face_smr_data[13] =  r_avg / q_avg = 6 / 6 = 1
+    assert abs(face_smr_data[11] - 1) < MIN_EVAL
+    # ql_dist > rr_dist -> face_smr_data[12] = rr_dist / ql_dist = 4.4721 / 8.9443 = 0.5
+    assert abs(face_smr_data[12] - 0.5) < MIN_EVAL
+    # qr_dist < rl_dist -> face_smr_data[13] =  qr_dist / rl_dist = 4.4721 / 8.9443 = 0.5
+    assert abs(face_smr_data[13] - 0.5) < MIN_EVAL
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[14] - 63.4349)< MIN_EVAL
+    # e_dist > f_dist -> face_smr_data[15] =  f_dist / e_dist = 40.2492 / 60.3738 = 0.6667
+    assert abs(face_smr_data[15] - 0.6667) < MIN_EVAL
+    # sl_dist > tl_dist -> face_smr_data[16] =  tl_dist / sl_dist = 4.4721 / 22.3607 = 0.2
+    assert abs(face_smr_data[16] - 0.2) < MIN_EVAL
+    # su_dist < tu_dist -> face_smr_data[17] =  tu_dist / su_dist = 8.9443 / 17.8885 = 0.5
+    assert abs(face_smr_data[17] - 0.5) < MIN_EVAL
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[22] - 63.4349)< MIN_EVAL
+    # abs(math.atan2(delta_y, delta_x) * 180 / math.pi)
+    assert abs(face_smr_data[23] - 63.4349)< MIN_EVAL
+    # o_dist > p_dist -> face_smr_data[24] =  p_dist / o_dist = 22.3607 / 31.3050 = 0.7143
+    assert abs(face_smr_data[24] -0.7143) < MIN_EVAL
+    # b_dist != 0 -> face_smr_data[27] =  l_dist / b_dist = 2.2361 / 17.8885 = 13
+    assert abs(face_smr_data[27] - 13) < MIN_EVAL
+
