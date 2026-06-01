@@ -1,7 +1,7 @@
 name: Python application
 
 on:
-  push:
+  [push, pull_request]
 
 jobs:
   build:
@@ -10,6 +10,21 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.13"]
+
+  test_parallel:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Keep running other matrix jobs even if one fails
+      fail-fast: false 
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Define the exact test files or paths to split
+        test-file: [
+          "tests/test_pipeline.py", 
+          "tests/test_run_facial_landmarks_prediction.py", 
+          "tests/test_run_prepare_data_to_arff.py",
+          "tests/test_utils.py"
+        ]
 
     steps:
     - uses: actions/checkout@v4
@@ -23,4 +38,4 @@ jobs:
         pip install -r requirements.txt
     - name: Test with pytest
       run: |
-        pytest -v --cov=./ tests/test_pipeline.py
+        pytest -v --cov=./ ${{ matrix.test-file }}
