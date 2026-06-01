@@ -21,3 +21,4 @@ test_data/test_image_001.csv
 test_data/test_image_002.csv
 test_data/test_image_003.csv
 test_data/test_image_004.csv
+.coverage
