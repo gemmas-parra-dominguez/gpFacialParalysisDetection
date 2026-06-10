@@ -3,6 +3,7 @@ import numpy as np
 import os
 import sys
 from unittest.mock import patch, MagicMock
+from config import *
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import run_facial_landmarks_prediction as rflp
@@ -55,19 +56,16 @@ def test_ComputeFaceLandMarks(mock_rectangle, mock_shape_predictor, mock_get_fro
     shape, boundingBox = rflp.ComputeFaceLandMarks(img, 'MEE')
 
     # Verify shape dimensions
-    assert shape.shape == (68, 2)
-    assert shape[0, 0] == 1 # 0 <= 0 gets replaced by 1 in code
-    assert shape[0, 1] == 1 # 0 <= 0 gets replaced by 1
+    assert shape.shape == (FACIAL_LANDMARKS, 2)
+    assert shape[0, 0] == 1
+    assert shape[0, 1] == 1
     assert shape[1, 0] == 1
     assert shape[1, 1] == 2
     assert shape[67, 0] == 67
     assert shape[67, 1] == 134
 
-    # Verify bounding box (adjusted by ScalingFactor of 100/200 = 0.5)
+    # Verify bounding box (adjusted by ScalingFactor of 0.5)
     # rect is (10, 10, 50, 50) in small image space
-    # Scale back to original? The code says:
-    # boundingBox = [rect.left() * SF, rect.top() * SF, width, height]
-    # SF = 100 / 200 = 0.5
     # So 10 * 0.5 = 5, 50 * 0.5 = 25
     assert boundingBox == [5, 5, 20, 20]
 
@@ -77,8 +75,8 @@ def test_DrawResults():
     facial landmarks as circles without crashing.
     """
     img = np.zeros((100, 100, 3), dtype=np.uint8)
-    shape = np.zeros((68, 2), dtype=int)
-    for i in range(68):
+    shape = np.zeros((FACIAL_LANDMARKS, 2), dtype=int)
+    for i in range(FACIAL_LANDMARKS):
         shape[i] = [i, i]
 
     boundingBox = [10, 10, 40, 40]
@@ -87,8 +85,7 @@ def test_DrawResults():
     rflp.DrawResults(img, shape, boundingBox)
 
     # Check if a specific point was drawn (BGR: (0,0,255) is red)
-    assert img[34, 34, 2] == 255 # Red channel should be 255
-    assert img[34, 34, 0] == 0   # Blue channel should be 0
-
-    # Ensure point 0,0 is drawn
-    assert img[0, 0, 2] == 255
+    for idx in range(FACIAL_LANDMARKS):
+        assert img[idx, idx, 2] == 255 # Red channel should be 255
+        assert img[idx, idx, 1] == 0   # Green channel should be 0
+        assert img[idx, idx, 0] == 0   # Blue channel should be 0
