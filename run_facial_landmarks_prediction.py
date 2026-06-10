@@ -30,7 +30,7 @@ from dlib import shape_predictor
 from dlib import rectangle
 
 def ComputeFaceLandMarks(image, ModelName):
-    shape = np.zeros((68,2),dtype=int)
+    shape = np.zeros((FACIAL_LANDMARKS,2),dtype=int)
     boundingBox = [-1,-1,-1,-1]
 
     detector = get_frontal_face_detector()
@@ -82,7 +82,7 @@ def ComputeFaceLandMarks(image, ModelName):
             shape_dlib = predictor(image, mod_rect)
             #shape_dlib = predictor(gray, rect)
             #transform shape object to np.matrix type
-            for k in range(0,68):
+            for k in range(0,FACIAL_LANDMARKS):
                 shape[k] = (shape_dlib.part(k).x, shape_dlib.part(k).y)
                 if shape[k,0]<= 0 : shape[k,0] = 1
                 if shape[k,1]<= 0 : shape[k,1] = 1
@@ -95,7 +95,7 @@ def ComputeFaceLandMarks(image, ModelName):
     return shape, boundingBox
 
 def DrawResults(image, shape, boundingBox):
-    for k in range(0, 68):
+    for k in range(0, FACIAL_LANDMARKS):
         cv2.circle(image,(shape[k,0],shape[k,1]), 5, (0,0,255), -1)
 #    cv2.rectangle(image, (boundingBox[0],boundingBox[1]), (boundingBox[2],boundingBox[3]), (255, 0 , 0), 2)
 
