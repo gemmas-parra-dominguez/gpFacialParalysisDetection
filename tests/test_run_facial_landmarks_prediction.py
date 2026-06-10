@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 import os
 import sys
@@ -55,7 +54,7 @@ def test_ComputeFaceLandMarks(mock_rectangle, mock_shape_predictor, mock_get_fro
 
     shape, boundingBox = rflp.ComputeFaceLandMarks(img, 'MEE')
 
-    # Verify shape dimensions
+    # Verify shape dimensions (values are mocked)
     assert shape.shape == (FACIAL_LANDMARKS, 2)
     assert shape[0, 0] == 1
     assert shape[0, 1] == 1
